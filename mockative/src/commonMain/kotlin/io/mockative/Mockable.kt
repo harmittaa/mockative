@@ -27,12 +27,16 @@ abstract class Mockable(stubsUnitByDefault: Boolean) {
     }
 
     private fun getBlockingStub(invocation: Invocation, returnsUnit: Boolean): BlockingStub {
+        return getBlockingStubOrNull(invocation, returnsUnit)
+            ?: throw MissingExpectationError(this, invocation, false, expectations)
+    }
+
+    private fun getBlockingStubOrNull(invocation: Invocation, returnsUnit: Boolean): BlockingStub? {
         return getBlockingStubOrNull(invocation) ?: if (returnsUnit && stubsUnitsByDefault) {
             BlockingStub(invocation.toOpenExpectation()) { }.also { addBlockingStub(it) }
         } else {
             getSuspendStubOrNull(invocation)
                 ?.let { throw InvalidExpectationError(this, invocation, false, expectations) }
-                ?: throw MissingExpectationError(this, invocation, false, expectations)
         }
     }
 
@@ -48,12 +52,16 @@ abstract class Mockable(stubsUnitByDefault: Boolean) {
         get() = suspendStubs.map { it.expectation } + blockingStubs.map { it.expectation }
 
     private fun getSuspendStub(invocation: Invocation, returnsUnit: Boolean): SuspendStub {
+        return getSuspendStubOrNull(invocation, returnsUnit)
+            ?: throw MissingExpectationError(this, invocation, true, expectations)
+    }
+
+    private fun getSuspendStubOrNull(invocation: Invocation, returnsUnit: Boolean): SuspendStub? {
         return getSuspendStubOrNull(invocation) ?: if (returnsUnit && stubsUnitsByDefault) {
             SuspendStub(invocation.toOpenExpectation()) { }.also { addSuspendStub(it) }
         } else {
             getBlockingStubOrNull(invocation)
                 ?.let { throw InvalidExpectationError(this, invocation, true, expectations) }
-                ?: throw MissingExpectationError(this, invocation, true, expectations)
         }
     }
 

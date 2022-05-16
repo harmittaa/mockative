@@ -15,3 +15,5 @@ import kotlin.reflect.KClass
  * @return an instance of the mocked type
  */
 fun <T : Any> mock(type: KClass<T>): T = throw NoSuchMockError(type)
+
+fun <T : Any> spyOn(instance: T): T = throw NoSuchMockError(instance::class)
